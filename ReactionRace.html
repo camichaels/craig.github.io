@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reaction Race</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f9f9f9;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        .game-container {
+            margin-top: 20px;
+        }
+        .letter-display {
+            font-size: 72px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .result {
+            margin: 10px 0;
+            font-size: 18px;
+        }
+        .score-table {
+            margin: 20px auto;
+            max-width: 400px;
+            text-align: left;
+        }
+        .score-table th, .score-table td {
+            padding: 8px;
+            border: 1px solid #ddd;
+        }
+        .score-table th {
+            background-color: #f0f0f0;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin-top: 20px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .end-button {
+            margin-top: 20px;
+            background-color: #f44336;
+        }
+        .end-button:hover {
+            background-color: #d32f2f;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Reaction Race</h1>
+    <p>Press the matching key (Q, R, U, P) as quickly as possible when the letter appears!</p>
+    <div class="game-container">
+        <div class="letter-display" id="letter-display">?</div>
+        <div class="result" id="result"></div>
+        <div class="hidden" id="score-summary">
+            <h2>Game Over!</h2>
+            <div id="summary-description"></div>
+            <table class="score-table">
+                <thead>
+                    <tr>
+                        <th>Round</th>
+                        <th>Result</th>
+                        <th>Time</th>
+                        <th>Rating</th>
+                    </tr>
+                </thead>
+                <tbody id="score-table-body"></tbody>
+            </table>
+            <button onclick="startGame()">Play Again</button>
+            <button class="end-button" onclick="endGame()">End</button>
+        </div>
+    </div>
+
+    <script>
+        const letters = ['Q', 'R', 'U', 'P'];
+        let currentLetter = null;
+        let roundStartTime = null;
+        let scores = [];
+        let currentRound = 0;
+        const maxRounds = 10;
+
+        const letterDisplay = document.getElementById('letter-display');
+        const resultDisplay = document.getElementById('result');
+        const scoreSummary = document.getElementById('score-summary');
+        const scoreTableBody = document.getElementById('score-table-body');
+        const summaryDescription = document.getElementById('summary-description');
+
+        // Start a new game
+        function startGame() {
+            scores = [];
+            currentRound = 0;
+            scoreSummary.classList.add('hidden');
+            summaryDescription.textContent = "";
+            nextRound();
+        }
+
+        // End the session
+        function endGame() {
+            window.location.href = "Menu.html";
+        }
+
+        // Start the next round
+        function nextRound() {
+            if (currentRound >= maxRounds) {
+                showScores();
+                return;
+            }
+
+            currentRound++;
+            resultDisplay.textContent = "";
+            letterDisplay.textContent = "?";
+
+            const delay = Math.random() * 2000 + 1000; // Random delay between 1-3 seconds
+            setTimeout(() => {
+                currentLetter = letters[Math.floor(Math.random() * letters.length)];
+                letterDisplay.textContent = currentLetter;
+                roundStartTime = performance.now();
+            }, delay);
+        }
+
+        // Handle key presses
+        document.addEventListener('keydown', (event) => {
+            if (!currentLetter || !roundStartTime) return;
+
+            const key = event.key.toUpperCase();
+            const reactionTime = (performance.now() - roundStartTime) / 1000; // In seconds
+            let result, rating;
+
+            if (key === currentLetter) {
+                if (reactionTime < 0.5) {
+                    rating = "Lightning fast";
+                } else if (reactionTime < 1) {
+                    rating = "Speedy";
+                } else if (reactionTime < 2) {
+                    rating = "Kinda quick";
+                } else {
+                    rating = "Lazy";
+                }
+                result = `Correct! Reaction time: ${reactionTime.toFixed(3)}s (${rating})`;
+                scores.push({ round: currentRound, result: "Correct", time: reactionTime, rating });
+            } else {
+                result = "Sorry, not sorry!";
+                scores.push({ round: currentRound, result: "Wrong key", time: null, rating: "Missed" });
+            }
+
+            resultDisplay.textContent = result;
+            currentLetter = null; // Reset the current letter
+            roundStartTime = null; // Reset the timer
+            setTimeout(nextRound, 1000); // Wait 1 second before the next round
+        });
+
+        // Show scores and calculate summary
+        function showScores() {
+            // Calculate average time and apply penalties for missed rounds
+            const correctScores = scores.filter(score => score.result === "Correct");
+            const missedRounds = scores.filter(score => score.result !== "Correct").length;
+
+            let avgTime = correctScores.length
+                ? correctScores.reduce((sum, score) => sum + score.time, 0) / correctScores.length
+                : 0;
+
+            // Add a 2-second penalty for each missed round
+            avgTime += missedRounds * 2;
+
+            let overallRating;
+            if (avgTime < 0.5) {
+                overallRating = "Lightning fast";
+            } else if (avgTime < 1) {
+                overallRating = "Speedy";
+            } else if (avgTime < 2) {
+                overallRating = "Kinda quick";
+            } else {
+                overallRating = "Lazy";
+            }
+
+            // Playful summary if there are missed rounds
+            const playfulComment = missedRounds > 0
+                ? ` (and maybe stop missing letters next time!)`
+                : "";
+
+            summaryDescription.textContent = `Your overall performance: ${
+                overallRating
+            } (Average Time: ${avgTime.toFixed(3)}s)${playfulComment}`;
+
+            // Populate the score table
+            scoreTableBody.innerHTML = scores.map(score => `
+                <tr>
+                    <td>${score.round}</td>
+                    <td>${score.result}</td>
+                    <td>${score.time !== null ? score.time.toFixed(3) + "s" : "-"}</td>
+                    <td>${score.rating}</td>
+                </tr>
+            `).join("");
+
+            scoreSummary.classList.remove('hidden');
+        }
+
+        // Start the first game on page load
+        startGame();
+    </script>
+</body>
+</html>

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Idea Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f9f9f9;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        .prompt {
+            font-size: 24px;
+            margin: 20px 0;
+        }
+        .timer {
+            font-size: 48px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .bars {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin: 10px 0;
+        }
+        .bar {
+            width: 20px;
+            height: 20px;
+            background-color: green;
+            border-radius: 3px;
+        }
+        .bar.empty {
+            background-color: lightgray;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin-top: 20px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .hidden {
+            display: none;
+        }
+        .end-button {
+            margin-top: 20px;
+            background-color: #f44336;
+        }
+        .end-button:hover {
+            background-color: #d32f2f;
+        }
+    </style>
+</head>
+<body>
+    <h1>Random Idea Generator</h1>
+    <div class="prompt" id="prompt"></div>
+    <div class="timer" id="timer">60</div>
+    <div class="bars" id="bars">
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+    </div>
+    <div id="controls" class="hidden">
+        <button onclick="nextPrompt()">Another Idea</button>
+        <button class="end-button" onclick="endSession()">End</button>
+    </div>
+
+    <script>
+        const prompts = [
+            "Name three uses for a paperclip.",
+            "Describe your dream vacation in one sentence.",
+            "Write a sentence using the words 'banana,' 'robot,' and 'ocean.'",
+            "Invent a new flavor of ice cream and describe it.",
+            "What would you do with $1,000 if you had to spend it all in one day?",
+            "Think of a title for a book about your life.",
+            "What’s a new way to use a coffee mug?",
+            "Invent a superhero power using something you have in your house.",
+            "Describe an imaginary world where cats rule.",
+            "What are three ways to use a balloon?",
+            // ... Additional prompts omitted for brevity ...
+        ];
+
+        let usedPrompts = [];
+        let countdownInterval;
+        let timeLeft = 60;
+
+        function getRandomPrompt() {
+            let availablePrompts = prompts.filter(prompt => !usedPrompts.includes(prompt));
+            if (availablePrompts.length === 0) {
+                usedPrompts = [];
+                availablePrompts = prompts;
+            }
+            const randomIndex = Math.floor(Math.random() * availablePrompts.length);
+            const selectedPrompt = availablePrompts[randomIndex];
+            usedPrompts.push(selectedPrompt);
+            if (usedPrompts.length > 5) {
+                usedPrompts.shift();
+            }
+            return selectedPrompt;
+        }
+
+        function updateBars() {
+            const bars = document.querySelectorAll('.bar');
+            bars.forEach((bar, index) => {
+                bar.classList.toggle('empty', index >= timeLeft / 15);
+            });
+        }
+
+        function startTimer() {
+            clearInterval(countdownInterval);
+            timeLeft = 60;
+            document.getElementById('timer').textContent = timeLeft;
+            updateBars();
+            countdownInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer').textContent = timeLeft;
+                updateBars();
+                if (timeLeft <= 0) {
+                    clearInterval(countdownInterval);
+                    showEndScreen("Awesome!");
+                }
+            }, 1000);
+        }
+
+        function showEndScreen(message) {
+            clearInterval(countdownInterval);
+            document.getElementById('prompt').textContent = message;
+            document.getElementById('timer').textContent = "";
+            document.getElementById('bars').classList.add('hidden');
+            document.getElementById('controls').classList.remove('hidden');
+        }
+
+        function nextPrompt() {
+            document.getElementById('prompt').textContent = getRandomPrompt();
+            document.getElementById('controls').classList.add('hidden');
+            document.getElementById('bars').classList.remove('hidden');
+            startTimer();
+        }
+
+        function endSession() {
+            window.location.href = "Menu.html";
+        }
+
+        document.addEventListener('keydown', (event) => {
+            const key = event.key.toUpperCase();
+            if (['Q', 'R', 'U', 'P'].includes(key)) {
+                showEndScreen("Awesome!");
+            }
+        });
+
+        nextPrompt();
+    </script>
+</body>
+</html>

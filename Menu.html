@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hi, Sparky</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f9f9f9;
+            padding: 20px;
+        }
+        h1 {
+            font-size: 36px;
+            color: #333;
+        }
+        p {
+            font-size: 24px;
+            color: #555;
+            margin: 20px 0;
+        }
+        .instructions {
+            font-size: 20px;
+            color: #666;
+            margin: 10px 0;
+        }
+        .highlight {
+            font-weight: bold;
+            color: #4CAF50;
+        }
+    </style>
+</head>
+<body>
+    <h1>Hi, Sparky!</h1>
+    <p>Press a key to get going:</p>
+    <div class="instructions"><span class="highlight">Q</span> for Activity Suggestions</div>
+    <div class="instructions"><span class="highlight">R</span> for Play Time</div>
+    <div class="instructions"><span class="highlight">U</span> for Get Moving</div>
+    <div class="instructions"><span class="highlight">P</span> for Sidekick Mode</div>
+    <p id="error-message" style="color: red; display: none;">Invalid key! Please press Q, R, U, or P.</p>
+
+    <script>
+        // Listen for keypress events
+        document.addEventListener('keydown', (event) => {
+            const key = event.key.toUpperCase();
+            const errorMessage = document.getElementById('error-message');
+
+            // Open the appropriate file based on the key pressed
+            switch (key) {
+                case 'Q':
+                    window.location.href = 'ActivityFinder.html';
+                    break;
+                case 'R':
+                    window.location.href = 'ReactionRace.html';
+                    break;
+                case 'U':
+                    window.location.href = 'BreathingCoach.html';
+                    break;
+                case 'P':
+                    window.location.href = 'RandomIdea.html';
+                    break;
+                default:
+                    // Show error message for invalid key presses
+                    errorMessage.style.display = 'block';
+                    setTimeout(() => errorMessage.style.display = 'none', 2000);
+            }
+        });
+    </script>
+</body>
+</html>

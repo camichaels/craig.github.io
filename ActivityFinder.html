@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sparky Activity Recommender</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        h1 {
+            color: #333;
+        }
+        label {
+            margin-top: 10px;
+            display: block;
+        }
+        select, button {
+            margin: 10px 0;
+            padding: 10px;
+            font-size: 16px;
+            width: 100%;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .end-button {
+            margin-top: 20px;
+            background-color: #f44336;
+        }
+        .end-button:hover {
+            background-color: #d32f2f;
+        }
+        .results {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e7f7e7;
+            border: 1px solid #c4e3c4;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Sparky Activity Recommender</h1>
+    <form id="activity-form">
+        <label for="energy">How much energy do you have?</label>
+        <select id="energy">
+            <option value="1">Low</option>
+            <option value="2">Moderate</option>
+            <option value="3">High</option>
+            <option value="4">Very High</option>
+        </select>
+
+        <label for="location">Where do you want to be?</label>
+        <select id="location">
+            <option value="1">Stay at Home</option>
+            <option value="2">Go Out (Indoors)</option>
+            <option value="3">Go Out (Outdoors)</option>
+            <option value="4">Overnight Adventure</option>
+        </select>
+
+        <label for="vibe">What vibe are you going for?</label>
+        <select id="vibe">
+            <option value="1">Laugh It Up (Playful)</option>
+            <option value="2">Let’s Chill (Relaxing)</option>
+            <option value="3">Make Something (Creative)</option>
+            <option value="4">Explore (Adventurous)</option>
+        </select>
+
+        <button type="button" onclick="recommendActivities()">Find Activities</button>
+    </form>
+
+    <div id="results" class="results" style="display: none;">
+        <h2>Top 5 Activities for You:</h2>
+        <ol id="activity-list"></ol>
+    </div>
+
+    <button class="end-button" onclick="endSession()">End</button>
+
+    <script>
+        // List of 100 activities with categorized scores
+        const activities = [
+      { name: "Have a themed dinner night at home", energy: 3, location: 1, vibe: 2 },
+    { name: "Do a backyard BBQ", energy: 3, location: 1, vibe: 2 },
+    { name: "Host a movie marathon", energy: 1, location: 1, vibe: 2 },
+    { name: "Visit an arcade", energy: 2, location: 2, vibe: 3 },
+    { name: "Go on a photo scavenger hunt", energy: 3, location: 3, vibe: 3 },
+    { name: "Visit a historical site", energy: 2, location: 3, vibe: 4 },
+    { name: "Do a sunrise hike", energy: 3, location: 3, vibe: 4 },
+    { name: "Take a scenic train ride", energy: 2, location: 4, vibe: 2 },
+    { name: "Go sledding", energy: 3, location: 3, vibe: 4 },
+    { name: "Try a wine tasting", energy: 3, location: 4, vibe: 4 },
+    { name: "Have a lazy brunch", energy: 1, location: 2, vibe: 2 },
+    { name: "Watch a movie at home", energy: 1, location: 1, vibe: 2 },
+    { name: "Bake cookies or a cake", energy: 2, location: 1, vibe: 3 },
+    { name: "Play a party game (e.g., Charades)", energy: 2, location: 1, vibe: 1 },
+    { name: "Have a spa day at home", energy: 1, location: 1, vibe: 2 },
+    { name: "Try a DIY craft project", energy: 2, location: 1, vibe: 3 },
+    { name: "Go for a short walk around the neighborhood", energy: 1, location: 3, vibe: 2 },
+    { name: "Visit a local coffee shop", energy: 1, location: 2, vibe: 2 },
+    { name: "Have a picnic at a park", energy: 2, location: 3, vibe: 4 },
+    { name: "Visit a museum or gallery", energy: 2, location: 2, vibe: 4 },
+    { name: "Try karaoke at home", energy: 3, location: 1, vibe: 1 },
+    { name: "Go bowling", energy: 2, location: 2, vibe: 1 },
+    { name: "Go hiking on a nearby trail", energy: 4, location: 3, vibe: 4 },
+    { name: "Plan an overnight camping trip", energy: 3, location: 4, vibe: 4 },
+    { name: "Attend a comedy show", energy: 2, location: 3, vibe: 1 },
+    { name: "Visit a farmer’s market", energy: 2, location: 3, vibe: 2 },
+    { name: "Go stargazing", energy: 2, location: 3, vibe: 4 },
+    { name: "Try a paint-and-sip event", energy: 2, location: 2, vibe: 3 },
+    { name: "Have a board game night", energy: 1, location: 2, vibe: 1 },
+    { name: "Go rock climbing at an indoor gym", energy: 4, location: 2, vibe: 4 },
+    { name: "Go rock climbing", energy: 4, location: 3, vibe: 4 },
+    { name: "Try a new recipe", energy: 2, location: 2, vibe: 3 },
+    { name: "Explore an art gallery", energy: 2, location: 2, vibe: 2 },
+    { name: "Explore an outdoor garden", energy: 2, location: 3, vibe: 2 },
+    { name: "Go paddleboarding", energy: 3, location: 3, vibe: 4 },
+    { name: "Play pickleball", energy: 3, location: 3, vibe: 1 },
+    { name: "Host a trivia night", energy: 1, location: 1, vibe: 1 },
+    { name: "Do an escape room", energy: 3, location: 2, vibe: 4 },
+    { name: "Do a workout video at home", energy: 4, location: 1, vibe: 4 },
+    { name: "Take a gym class", energy: 4, location: 2, vibe: 4 },
+    { name: "Go for a run", energy: 4, location: 3, vibe: 4 },
+    { name: "Take a day trip to the beach", energy: 2, location: 3, vibe: 2 },
+    { name: "Try a food truck festival", energy: 1, location: 3, vibe: 2 },
+    { name: "Go for a bike ride", energy: 3, location: 3, vibe: 4 },
+    { name: "Attend a workshop or class", energy: 2, location: 2, vibe: 3 },
+    { name: "Have a backyard campfire", energy: 2, location: 1, vibe: 2 },
+    { name: "Go to an amusement park", energy: 3, location: 3, vibe: 1 },
+    { name: "Plan a road trip to a nearby town", energy: 3, location: 4, vibe: 4 },
+    { name: "Go to a trampoline park", energy: 3, location: 2, vibe: 4 },
+    { name: "Attend a concert", energy: 3, location: 2, vibe: 1 },
+    { name: "Explore a nearby city", energy: 3, location: 4, vibe: 4 },
+    { name: "Play frisbee golf", energy: 3, location: 3, vibe: 1 },
+    { name: "Have a themed dinner night at home", energy: 2, location: 1, vibe: 2 }
+        ];
+
+        // Weights for the scoring system
+        const weights = { energy: 0.4, location: 0.3, vibe: 0.3 };
+
+        function recommendActivities() {
+            // Get user input
+            const energy = parseInt(document.getElementById("energy").value);
+            const location = parseInt(document.getElementById("location").value);
+            const vibe = parseInt(document.getElementById("vibe").value);
+
+            const locationPenalty = 10; // Large penalty for mismatches
+
+            // Calculate scores for each activity
+            const scoredActivities = activities.map(activity => {
+                // Check if location matches
+                const locationMismatch = activity.location !== location;
+                
+                // Apply a penalty for mismatched locations
+                const penalty = locationMismatch ? locationPenalty : 0;
+
+                // Calculate weighted score with penalty
+                const score = (
+                    weights.energy * (4 - Math.abs(activity.energy - energy)) +
+                    weights.location * (4 - Math.abs(activity.location - location)) +
+                    weights.vibe * (4 - Math.abs(activity.vibe - vibe)) -
+                    penalty
+                );
+
+                return { ...activity, score };
+            });
+
+            // Filter out activities with negative scores or zero (optional)
+            const filteredActivities = scoredActivities.filter(a => a.score > 0);
+
+            // Sort activities by score and take the top 5
+            const topActivities = filteredActivities.sort((a, b) => b.score - a.score).slice(0, 5);
+
+            // Display the results
+            const resultsDiv = document.getElementById("results");
+            const activityList = document.getElementById("activity-list");
+            activityList.innerHTML = topActivities.map(a => `<li>${a.name}</li>`).join("");
+            resultsDiv.style.display = "block";
+        }
+
+        function endSession() {
+            window.location.href = "Menu.html";
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Breathing Coach</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f9f9f9;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        .bars {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin: 20px 20px;
+        }
+        .bar {
+            width: 40px;
+            height: 40px;
+            background-color: lightgray;
+            border-radius: 5px;
+        }
+        .bar.filled {
+            background-color: green;
+        }
+        .counter {
+            font-size: 24px;
+            margin: 20px 0;
+        }
+        .stage {
+            font-size: 20px;
+            color: #666;
+            margin-top: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin-top: 20px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .end-button {
+            margin-top: 20px;
+            background-color: #f44336;
+        }
+        .end-button:hover {
+            background-color: #d32f2f;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Breathing Coach</h1>
+    <div id="counter" class="counter"></div>
+    <div class="bars" id="bars">
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+    </div>
+    <div id="stage" class="stage"></div>
+    <div id="controls" class="hidden">
+        <button onclick="startBreathing()">Try Again</button>
+        <button class="end-button" onclick="endSession()">End</button>
+    </div>
+
+    <script>
+        const bars = document.querySelectorAll('.bar');
+        const counter = document.getElementById('counter');
+        const stageText = document.getElementById('stage');
+        const controls = document.getElementById('controls');
+        let currentBreath = 1;
+        const totalBreaths = 10;
+
+        // Timing for each stage (in seconds)
+        const timings = Array.from({ length: totalBreaths }, (_, i) => {
+            const seconds = Math.min(i + 1, 5); // Breath 1 starts at 1 sec, maxes at 5 sec from Breath 6 onward
+            return { inhale: seconds, hold: seconds, exhale: seconds, holdExhale: seconds };
+        });
+
+        function updateBars(filledBars) {
+            bars.forEach((bar, index) => {
+                bar.classList.toggle('filled', index < filledBars);
+            });
+        }
+
+        function updateStageText(stage) {
+            const stageLabels = {
+                inhale: "Inhale",
+                holdFull: "Hold",
+                exhale: "Exhale",
+                holdEmpty: "Hold"
+            };
+            stageText.textContent = stageLabels[stage];
+        }
+
+        function startBreathing() {
+            currentBreath = 1;
+            controls.classList.add('hidden');
+            counter.textContent = `Breath 1 of ${totalBreaths}`;
+            stageText.textContent = "";
+            runBreathCycle();
+        }
+
+        function runBreathCycle() {
+            if (currentBreath > totalBreaths) {
+                counter.textContent = "Harmony achieved!";
+                stageText.textContent = "";
+                controls.classList.remove('hidden');
+                return;
+            }
+
+            const timing = timings[currentBreath - 1];
+            counter.textContent = `Breath ${currentBreath} of ${totalBreaths}`;
+
+            let stage = 0;
+
+            function nextStage() {
+                switch (stage) {
+                    case 0: // Inhale
+                        updateStageText("inhale");
+                        fillBars(timing.inhale, true, () => nextStage());
+                        break;
+                    case 1: // Hold (Full)
+                        updateStageText("holdFull");
+                        setTimeout(() => nextStage(), timing.hold * 1000);
+                        break;
+                    case 2: // Exhale
+                        updateStageText("exhale");
+                        fillBars(timing.exhale, false, () => nextStage());
+                        break;
+                    case 3: // Hold (Empty)
+                        updateStageText("holdEmpty");
+                        setTimeout(() => {
+                            currentBreath++;
+                            runBreathCycle();
+                        }, timing.holdExhale * 1000);
+                        break;
+                }
+                stage++;
+            }
+
+            nextStage();
+        }
+
+        function fillBars(duration, filling, callback) {
+            let filledBars = filling ? 0 : 4;
+            const stepTime = duration * 1000 / 4; // Time for each bar to fill/empty
+
+            function step() {
+                updateBars(filledBars);
+                if (filling) filledBars++;
+                else filledBars--;
+
+                if (filledBars >= 0 && filledBars <= 4) {
+                    setTimeout(step, stepTime);
+                } else {
+                    callback();
+                }
+            }
+
+            step();
+        }
+
+        function endSession() {
+            window.location.href = "Menu.html";
+        }
+
+        // Start the first session on page load
+        startBreathing();
+    </script>
+</body>
+</html>
